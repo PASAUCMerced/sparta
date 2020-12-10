@@ -1,0 +1,6 @@
+option('build_tests', type : 'boolean', value : true, description : 'Build unit tests')
+option('use_cuda', type : 'boolean', value : true, description : 'Enable CUDA')
+option('use_openmp', type : 'boolean', value : true, description : 'Enable OpenMP')
+option('use_openblas', type : 'boolean', value : false, description : 'Enable OpenBLAS to provide BLAS and LAPACK routines')
+option('use_magma', type : 'boolean', value : false, description : 'Enable Magma to provide BLAS and LAPACK routines')
+option('cuda_args', type : 'array', value : [], description : 'Extra arguments for CUDA compiler, in array form')

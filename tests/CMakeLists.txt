@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.2)  # CMake 3.2 supports CUDA 7.0
+project(ParTI)
+
+if(USE_CUDA)
+    file(GLOB_RECURSE TEST_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.c" "*.cu")
+else()
+    file(GLOB_RECURSE TEST_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.c")
+endif()
+
+
+foreach(TEST_SRC IN LISTS TEST_SRCS)
+    get_filename_component(TEST_EXE "${TEST_SRC}" NAME_WE)
+    if(USE_CUDA)
+        cuda_add_executable("${TEST_EXE}" "${TEST_SRC}")
+    else()
+        add_executable("${TEST_EXE}" "${TEST_SRC}")
+    endif()
+    set_target_properties("${TEST_EXE}" PROPERTIES C_STANDARD 99)
+    if(BUILD_STATIC)
+        target_link_libraries("${TEST_EXE}" ParTI_s)
+    else()
+        target_link_libraries("${TEST_EXE}" ParTI)
+    endif()
+    add_test(NAME "Test_${TEST_EXE}" COMMAND "${TEST_EXE}")
+endforeach(TEST_SRC)

@@ -1,0 +1,11 @@
+sftp-config.json
+*.DS_Store
+build/
+docs/latex
+build.env
+build-new.config
+build-new.env
+.tags*
+tags
+*.ptx
+*.mex*
