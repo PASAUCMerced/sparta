@@ -35,4 +35,4 @@ Options: -X FIRST INPUT TENSOR
 ## Contributiors
 
 * Jiawen Liu (Contact: jliu265@ucmerced.edu)
-* Jiajia Li (Contact: jiajiali@pnnl.gov)
+* Jiajia Li (Contact: Jiajia.Li@pnnl.gov)
