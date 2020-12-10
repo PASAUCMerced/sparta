@@ -13,8 +13,6 @@ Sparta is a high-performance, element-wise sparse tensor contraction software on
 
 - [OpenBLAS](http://www.openblas.net)
 
-- [NUMA](https://linux.die.net/man/3/numa)
-
 
 ## Build:
 1. `cd sparta` & `./build.sh`
