@@ -20,80 +20,6 @@
 #include "../sptensor.h"
 #include "hicoo.h"
 
-/**
- * Compare two coordinates, in the order of mode-0,...,N-1. One from the sparse tensor, the other is specified.
- * @param tsr    a pointer to a sparse tensor
- * @return      1, z > item; otherwise, 0.
- */
-static int sptLargerThanCoordinates(
-    sptSparseTensor *tsr,
-    const sptNnzIndex z,
-    const sptIndex * item)
-{
-    sptIndex nmodes = tsr->nmodes;
-    sptIndex i1, i2;
-
-    for(sptIndex m=0; m<nmodes; ++m) {
-        i1 = tsr->inds[m].data[z];
-        i2 = item[m];
-        if(i1 > i2) {
-            return 1;
-            break;
-        }
-    }
-    return 0;
-}
-
-
-/**
- * Compare two coordinates, in the order of mode-0,...,N-1. One from the sparse tensor, the other is specified.
- * @param tsr    a pointer to a sparse tensor
- * @return      1, z < item; otherwise, 0.
- */
-static int sptSmallerThanCoordinates(
-    sptSparseTensor *tsr,
-    const sptNnzIndex z,
-    const sptIndex * item)
-{
-    sptIndex nmodes = tsr->nmodes;
-    sptIndex i1, i2;
-
-    for(sptIndex m=0; m<nmodes; ++m) {
-        i1 = tsr->inds[m].data[z];
-        i2 = item[m];
-        if(i1 < i2) {
-            return 1;
-            break;
-        }
-    }
-    return 0;
-}
-
-
-/**
- * Compare two coordinates, in the order of mode-0,...,N-1. One from the sparse tensor, the other is specified.
- * @param tsr    a pointer to a sparse tensor
- * @return      1, z = item; otherwise, 0.
- */
-static int sptEqualWithCoordinates(
-    sptSparseTensor *tsr,
-    const sptNnzIndex z,
-    const sptIndex * item)
-{
-    sptIndex nmodes = tsr->nmodes;
-    sptIndex i1, i2;
-
-    for(sptIndex m=0; m<nmodes; ++m) {
-        i1 = tsr->inds[m].data[z];
-        i2 = item[m];
-        if(i1 != i2) {
-            return 0;
-            break;
-        }
-    }
-    return 1;
-}
-
 
 /**
  * Compare two specified coordinates.
@@ -115,48 +41,6 @@ static int sptEqualWithTwoCoordinates(
         }
     }
     return 1;
-}
-
-/**
- * Check if a nonzero item is in the range of two given coordinates, in the order of mode-0,...,N-1. 
- * @param tsr    a pointer to a sparse tensor
- * @return      1, yes; 0, no.
- */
-static int sptCoordinatesInRange(
-    sptSparseTensor *tsr,
-    const sptNnzIndex z,
-    const sptIndex * range_begin,
-    const sptIndex * range_end)
-{
-    if ( (sptLargerThanCoordinates(tsr, z, range_begin) == 1 ||
-        sptEqualWithCoordinates(tsr, z, range_begin) == 1) &&
-        sptSmallerThanCoordinates(tsr, z, range_end) == 1) {
-        return 1;
-    }
-    return 0;
-}
-
-/**
- * Compute the beginning of the next block
- * @param tsr    a pointer to a sparse tensor
- * @return out_item     the beginning indices of the next block
- */
-static int sptNextBlockBegin(
-    sptIndex * out_item,
-    sptSparseTensor *tsr,
-    const sptIndex * in_item,
-    const sptElementIndex sb)
-{
-    sptIndex nmodes = tsr->nmodes;
-
-    for(int32_t m=nmodes-1; m>=0; --m) {
-        if(in_item[m] < tsr->ndims[m]-1) {
-            out_item[m] = in_item[m]+sb-1 < tsr->ndims[m] ? in_item[m]+sb-1 : tsr->ndims[m] - 1;
-            break;
-        }
-    }
-
-    return 0;
 }
 
 
@@ -197,57 +81,6 @@ static int sptLocateBeginCoord(
     
     for(sptIndex m=0; m<nmodes; ++m) {
         out_item[m] = in_item[m] >> bits;
-    }
-
-    return 0;
-}
-
-
-/**
- * Compute the strides for kernels, mode order N-1, ..., 0 (row-like major)
- * @param tsr    a pointer to a sparse tensor
- * @return out_item     the beginning indices of this block
- */
-static int sptKernelStrides(
-    sptIndex * strides,
-    sptSparseTensor *tsr,
-    const sptIndex sk)
-{
-    sptIndex nmodes = tsr->nmodes;
-    sptIndex kernel_size = 0;
-    
-    // TODO: efficiently use bitwise operation
-    strides[nmodes-1] = 1;
-    for(sptIndex m=nmodes-2; m>=1; --m) {
-        kernel_size = (sptIndex)(tsr->ndims[m+1] + sk - 1) / sk;
-        strides[m] = strides[m+1] * kernel_size;
-    }
-    kernel_size = (sptIndex)(tsr->ndims[1] + sk - 1) / sk;
-    strides[0] = strides[1] * kernel_size;
-
-    return 0;
-}
-
-
-
-
-
-/**
- * Compute the end of this kernel
- * @param tsr    a pointer to a sparse tensor
- * @return out_item     the end indices of this block
- */
-static int sptKernelEnd(
-    sptIndex * out_item,
-    sptSparseTensor *tsr,
-    const sptIndex * in_item,
-    const sptIndex sk)
-{
-    sptIndex nmodes = tsr->nmodes;
-
-    for(sptIndex m=0; m<nmodes; ++m) {
-        sptAssert(in_item[m] < tsr->ndims[m]);
-        out_item[m] = in_item[m]+sk < tsr->ndims[m] ? in_item[m]+sk : tsr->ndims[m];    // exclusive
     }
 
     return 0;
@@ -472,7 +305,7 @@ int sptPreprocessSparseTensor(
     // printf("OK\n"); fflush(stdout);
 
     /* Set balanced data structures: kschr_balanced, kschr_rest */
-    sptNnzIndex avg_nnzk = tsr->nnz / (kptr->len - 1);
+    // sptNnzIndex avg_nnzk = tsr->nnz / (kptr->len - 1);
     sptNnzIndex max_nnzk = 0;
     for(sptIndex k=0; k<kptr->len - 1; ++k) {
         sptNnzIndex nnzk = knnzs->data[k];
@@ -493,7 +326,7 @@ int sptPreprocessSparseTensor(
         for(sptIndex i=0; i < kernel_ndim; ++i) {
             sptAppendIndexVector(&(kschr_balanced_pos_mode[i]), 0);
         }
-        sptIndex j_rest = nkiters[m];
+        // sptIndex j_rest = nkiters[m];
         sptIndex npars = 0;
         int tag_rest = 0;
         sptIndex count_nk = 0;
@@ -599,45 +432,6 @@ int sptPreprocessSparseTensor(
     sptPrintElapsedTime(morton_sort_timer, "\t\tMorton sorting");
     // sptPrintElapsedTime(morton_sort_timer, "\t\t2nd Rowblock sorting");
     sptFreeTimer(morton_sort_timer);
-
-    return 0;
-}
-
-
-/**
- * Pre-process COO sparse tensor by permuting, sorting, and record pointers to blocked rows for TTM. Kernels, blocks are both in row-major order, elements in a block is in an arbitrary order.
- * @param tsr    a pointer to a sparse tensor
- * @return      mode pointers
- */
-int sptPreprocessSparseTensor_RowBlock(
-    sptNnzIndexVector * kptr,
-    sptIndexVector **kschr,
-    sptIndex *nkiters,
-    sptIndex *nfibs,
-    sptNnzIndexVector * knnzs,
-    sptSparseTensor *tsr, 
-    const sptElementIndex sb_bits,
-    const sptElementIndex sk_bits,
-    int const tk)
-{
-    sptNnzIndex nnz = tsr->nnz;
-    int result;
-
-    /* Sort tsr in a Row-major Block order to get all kernels. */
-    sptSparseTensorSortIndexRowBlock(tsr, 1, 0, nnz, sk_bits, tk);
-    result = sptSetKernelPointers(kptr, knnzs, tsr, sk_bits);
-    spt_CheckError(result, "HiSpTns Preprocess", NULL);
-    // result = sptSetKernelScheduler(kschr, nkiters, kptr, tsr, sk_bits);
-    // spt_CheckError(result, "HiSpTns Preprocess", NULL);
-
-    /* Sort blocks in each kernel in Row-major block order. */
-    sptNnzIndex k_begin, k_end;
-    /* Loop for all kernels, 0-kptr.len for OMP code */
-    for(sptNnzIndex k=0; k<kptr->len - 1; ++k) {
-        k_begin = kptr->data[k];
-        k_end = kptr->data[k+1];   // exclusive
-        sptSparseTensorSortIndexRowBlock(tsr, 1, k_begin, k_end, sb_bits, tk);
-    }
 
     return 0;
 }

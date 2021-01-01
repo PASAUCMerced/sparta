@@ -37,7 +37,7 @@ int sptAppendValueVector(sptValueVector *vec, sptValue const value);
 int sptAppendValueVectorNuma(sptValueVector *vec, sptValue const value);
 int sptAppendValueVectorWithVector(sptValueVector *vec, const sptValueVector *append_vec);
 int sptAppendValueVectorWithVectorNuma(sptValueVector *vec, const sptValueVector *append_vec);
-int sptAppendValueVectorWithVectorFromStartNuma(sptValueVector *vec, const sptValueVector *append_vec, unsigned long long start);
+int sptAppendValueVectorWithVectorStartFromNuma(sptValueVector *vec, const sptValueVector *append_vec, unsigned long long start);
 int sptResizeValueVector(sptValueVector *vec, sptNnzIndex const size);
 int sptResizeValueVectorNuma(sptValueVector *vec, sptNnzIndex const size);
 void sptFreeValueVector(sptValueVector *vec);

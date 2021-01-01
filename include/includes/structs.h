@@ -256,7 +256,7 @@ typedef struct sptMutexPool sptMutexPool;
 
 /**
 * @brief This struct is written to the beginning of any binary tensor file
-*        written by SPLATT.
+*        originally supported by SPLATT.
 */
 typedef struct
 {

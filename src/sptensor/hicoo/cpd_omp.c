@@ -95,7 +95,7 @@ double OmpCpdAlsStepHiCOO(
 
   sptTimer tmp_timer;
   sptNewTimer(&tmp_timer, 0);
-  double mttkrp_time, solver_time, norm_time, ata_time, fit_time;
+  // double mttkrp_time, solver_time, norm_time, ata_time, fit_time;
   // double sum_time = 0.0;
 
   for(sptIndex it=0; it < niters; ++it) {
@@ -122,7 +122,7 @@ double OmpCpdAlsStepHiCOO(
         sptAssert (sptOmpMTTKRPHiCOO_MatrixTiling_Scheduled(hitsr, mats, mats_order, m, tk, tb, balanced) == 0);
       }
       sptStopTimer(tmp_timer);
-      mttkrp_time = sptPrintElapsedTime(tmp_timer, "MTTKRP");
+      // mttkrp_time = sptPrintElapsedTime(tmp_timer, "MTTKRP");
       // printf("sptMTTKRPHiCOO_MatrixTiling mats[nmodes]:\n");
       // sptDumpRankMatrix(mats[nmodes], stdout);
 

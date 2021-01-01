@@ -718,7 +718,7 @@ int spt_SparseTensorCompareIndices(sptSparseTensor * const tsr1, sptNnzIndex loc
 
 int spt_SparseTensorCompareIndicesCmode(sptSparseTensor * const tsr1, sptNnzIndex loc1,  sptSparseTensor * const tsr2, sptNnzIndex loc2, int cmode_start, int num_cmode)
 {
-    sptIndex i;
+    int i;
     assert(tsr1->nmodes == tsr2->nmodes);
     for(i = cmode_start; i < cmode_start + num_cmode; ++i) {
         sptIndex eleind1 = tsr1->inds[i].data[loc1];
@@ -1553,7 +1553,7 @@ static void spt_QuickSortIndexSingleMode(sptSparseTensor *tsr, sptNnzIndex l, sp
     #pragma omp taskwait
 }
 
-static void spt_InsertSortIndexExceptSingleMode(sptSparseTensor *tsr, sptNnzIndex l, sptNnzIndex r, sptIndex * mode_order, sptIndex * eleinds_buf) 
+static void spt_InsertSortIndexExceptSingleMode(sptSparseTensor *tsr, sptNnzIndex l, sptNnzIndex r, sptIndex * mode_order) 
 {
     long int j;
     for(sptNnzIndex i = l; i < r; ++i) {
@@ -1586,7 +1586,7 @@ static void spt_QuickSortIndexExceptSingleMode(sptSparseTensor *tsr, sptNnzIndex
     sptNnzIndex i, j, p;
     if(r-l < INSERTION_SORT_LENGTH) {
         // eleinds_buf = (sptIndex *)malloc(tsr->nmodes * sizeof(*eleinds_buf));
-        spt_InsertSortIndexExceptSingleMode(tsr, l, r, mode_order, eleinds_buf);
+        spt_InsertSortIndexExceptSingleMode(tsr, l, r, mode_order);
         // free(eleinds_buf);
         return;
     }
@@ -1733,7 +1733,7 @@ void htInsert( table_t *t, unsigned long long key, sptValue val){
     unsigned int pos = htHashCode(key);
      node_t *newNode = ( node_t*)malloc(sizeof( node_t));
      node_t *list = t->list[pos];
-     node_t *temp = list;
+     // node_t *temp = list;
     newNode->key = key;
     newNode->val = val;
     newNode->next = list;

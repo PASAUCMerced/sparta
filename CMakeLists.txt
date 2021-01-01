@@ -89,7 +89,7 @@ if(USE_OPENMP)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE -Wall -Wextra -Wno-maybe-uninitialized -lrt -fopenmp -O0 -g -DADD_")           
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-maybe-uninitialized -fopenmp -O0 -g -DADD_")
         else()
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE -Wall -Wextra -Wno-maybe-uninitialized -lrt -fopenmp -O3 -DADD_ -lnuma")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE -Wall -Wextra -Wno-maybe-uninitialized -lrt -fopenmp -O3 -DADD_ -lnuma -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-sign-compare -Wno-return-type -Wno-unused-result")
             # -msse4 -ftree-vectorize -funroll-loops -fprefetch-loop-arrays -mfpmath=sse -ftree-vectorizer-verbose=2
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-maybe-uninitialized -lrt -fopenmp -O3 -DADD_")
         endif()
@@ -221,7 +221,5 @@ if(BUILD_STATIC)
 endif()
 
 add_subdirectory("benchmark")
-# add_subdirectory("examples")
-# add_subdirectory("tests")
 
 

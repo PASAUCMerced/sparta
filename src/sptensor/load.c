@@ -57,7 +57,7 @@ static int get_file_type(
 
   /* default to text coordinate format */
   NOT_FOUND:
-  fprintf(stderr, "SPLATT: extension for '%s' not recognized. "
+  fprintf(stderr, "extension for '%s' not recognized. "
                   "Defaulting to ASCII coordinate form.\n", fname);
   return 0;
 }
@@ -129,14 +129,14 @@ static void read_binary_header(
   fread(&(header->val_width), sizeof(header->val_width), 1, fin);
 
   if(header->idx_width > PARTI_INDEX_TYPEWIDTH / 8) {
-    fprintf(stderr, "SPLATT: ERROR input has %lu-bit integers. "
+    fprintf(stderr, "ERROR input has %lu-bit integers. "
                     "Build with PARTI_INDEX_TYPEWIDTH %lu\n",
                     header->idx_width * 8, header->idx_width * 8);
     exit(-1);
   }
 
   if(header->val_width > PARTI_VALUE_TYPEWIDTH / 8) {
-    fprintf(stderr, "SPLATT: WARNING input has %lu-bit floating-point values. "
+    fprintf(stderr, "WARNING input has %lu-bit floating-point values. "
                     "Build with PARTI_VALUE_TYPEWIDTH %lu for full precision\n",
                     header->val_width * 8, header->val_width * 8);
   }
@@ -204,7 +204,7 @@ static void fill_binary_val(
     /* read in float in a buffered fashion */
     sptIndex const BUF_LEN = 1024*1024;
 
-    /* select whichever SPLATT *is not* configured with. */
+    /* select whichever *is not* configured with. */
 #if PARTI_VALUE_TYPEWIDTH == 64
     float * ubuf = (float*)malloc(BUF_LEN * sizeof(*ubuf));
 #else
@@ -362,11 +362,11 @@ void sptLoadShuffleFile(sptSparseTensor *tsr, FILE *fs, sptIndex ** map_inds)
 {
     sptNnzIndex line_count = 0;
     sptNnzIndex dim_count = 0;
-    int iores;
+    // int iores;
     for(sptIndex mode = 0; mode < tsr->nmodes; ++mode) {
         dim_count += tsr->ndims[mode];
         for(sptIndex i = 0; i < tsr->ndims[mode]; ++i) {
-            iores = fscanf(fs, "%u", &(map_inds[mode][i]));
+            fscanf(fs, "%u", &(map_inds[mode][i]));
             -- map_inds[mode][i];
             ++ line_count;
         }

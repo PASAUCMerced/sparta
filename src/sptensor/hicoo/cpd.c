@@ -47,7 +47,7 @@ double CpdAlsStepHiCOO(
 
   sptValue alpha = 1.0, beta = 0.0;
   char notrans = 'N';
-  char trans = 'T';
+  // char trans = 'T';
   char uplo = 'L';
   int blas_rank = (int) rank;
   int blas_stride = (int) stride;

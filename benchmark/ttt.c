@@ -30,7 +30,6 @@ void print_usage(char ** argv) {
     printf("         -m NUMBER OF CONTRACT MODES\n");
     printf("         -x CONTRACT MODES FOR TENSOR X (0-based)\n");
     printf("         -y CONTRACT MODES FOR TENSOR Y (0-based)\n");
-    printf("         -d DEV_ID, --dev-id=DEV_ID (default:-2)\n");
     printf("         -t NTHREADS, --nt=NT (Optinal)\n");
     printf("         --help\n");
     printf("\n");
@@ -44,7 +43,9 @@ int main(int argc, char *argv[]) {
     sptIndex * cmodes_X = NULL, * cmodes_Y = NULL;
     sptIndex num_cmodes = 1;
     int cuda_dev_id = -2;
+    int output_sorting=1;
     int niters = 5;
+    int placement = 0;
     int nt = 1;
 
     if(argc < 3) {
@@ -59,6 +60,8 @@ int main(int argc, char *argv[]) {
         {"x", required_argument, 0, 'x'},
         {"y", required_argument, 0, 'y'},
         {"Z", optional_argument, 0, 'Z'},
+        {"o", optional_argument, 0, 'o'},
+        {"p", optional_argument, 0, 'p'},
         {"cuda-dev-id", optional_argument, 0, 'd'},
         {"nt", optional_argument, 0, 't'},
         {"help", no_argument, 0, 0},
@@ -68,7 +71,7 @@ int main(int argc, char *argv[]) {
     int c;
     for(;;) {
         int option_index = 0;
-        c = getopt_long(argc, argv, "X:Y:m:x:y:Z:d:t:", long_options, &option_index);
+        c = getopt_long(argc, argv, "X:Y:m:x:y:o:p:Z:d:t:", long_options, &option_index);
         if(c == -1) {
             break;
         }
@@ -109,6 +112,12 @@ int main(int argc, char *argv[]) {
             }
             optind -= num_cmodes;
             break;
+        case 'o':
+            sscanf(optarg, "%d", &output_sorting);
+            break;    
+        case 'p':
+            sscanf(optarg, "%d", &placement);
+            break;      
         case 'd':
             sscanf(optarg, "%d", &cuda_dev_id);
             break;
@@ -135,8 +144,18 @@ int main(int argc, char *argv[]) {
         int optane_node;
         sscanf(getenv("OPTANE_NODE"), "%d", &optane_node);
         int numa_node = dram_node;
-        sptAssert(sptLoadSparseTensorNuma(&X, 1, Xfname, optane_node) == 0);
-        sptAssert(sptLoadSparseTensorNuma(&Y, 1, Yfname, optane_node) == 0);
+        if(placement==1){
+            sptAssert(sptLoadSparseTensorNuma(&X, 1, Xfname, optane_node) == 0);
+            sptAssert(sptLoadSparseTensorNuma(&Y, 1, Yfname, dram_node) == 0);
+        }
+        else if (placement==2){
+            sptAssert(sptLoadSparseTensorNuma(&X, 1, Xfname, dram_node) == 0);
+            sptAssert(sptLoadSparseTensorNuma(&Y, 1, Yfname, optane_node) == 0); 
+        }
+        else{
+            sptAssert(sptLoadSparseTensorNuma(&X, 1, Xfname, optane_node) == 0);
+            sptAssert(sptLoadSparseTensorNuma(&Y, 1, Yfname, optane_node) == 0);
+        }
         //sptAssert(sptLoadSparseTensor(&X, 1, Xfname) == 0);
         //sptAssert(sptLoadSparseTensor(&Y, 1, Yfname) == 0);
         sptSparseTensorStatus(&X, stdout);
@@ -155,7 +174,7 @@ int main(int argc, char *argv[]) {
 
     /* For warm-up caches, timing not included */
     if(cuda_dev_id == -2) {     
-            sptAssert(sptSparseTensorMulTensor(&Z, &X, &Y, num_cmodes, cmodes_X, cmodes_Y, nt) == 0);
+            sptAssert(sptSparseTensorMulTensor(&Z, &X, &Y, num_cmodes, cmodes_X, cmodes_Y, nt, output_sorting, placement) == 0);
     } else if(cuda_dev_id == -1) {
         // sptAssert(sptOmpSparseTensorMulMatrix(&Y, &X, &U, mode) == 0);
     }
