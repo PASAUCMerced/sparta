@@ -75,5 +75,6 @@ Options: -X FIRST INPUT TENSOR
 # Contributiors
 
 * Jiawen Liu (Contact: jliu265@ucmerced.edu)
+* Dong Li (Contact: dli35@ucmerced.edu)
 * Jiajia Li (Contact: Jiajia.Li@pnnl.gov)
 
